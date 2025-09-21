@@ -1,0 +1,34 @@
+---
+alwaysApply: true
+description: WXT project structure, entrypoints mapping, and path aliases
+---
+
+### Project Structure and WXT Mapping
+
+- **Source directories**:
+  - `entrypoints/` — Maps directly to MV3 contexts: `background`, `content`, `popup`, `options`, `sidepanel`, `devtools`.
+  - `components/` — UI primitives under `components/ui`, feature components under `components/features`, shared layouts under `components/layouts`.
+  - `lib/` — Domain logic (APIs, messaging, services, storage, hooks, utils).
+  - `assets/` and `public/` — Static assets; `public/_locales/*` for i18n.
+  - `types/` — Global and shared TypeScript declarations.
+  - `tests/` — Unit, integration, and light e2e stubs.
+
+- **WXT maps `entrypoints/*` to the Manifest V3 build**. Each file under `entrypoints/` is bundled for the corresponding extension context. See [wxt.config.ts](mdc:wxt.config.ts).
+
+### Path Aliases
+
+- Preferred aliases are configured in [wxt.config.ts](mdc:wxt.config.ts):
+  - `@components` → `components/`
+  - `@lib` → `lib/`
+  - `@assets` → `assets/`
+  - `@entry` → `entrypoints/`
+
+- **Guidelines**:
+  - Prefer absolute imports via the aliases above.
+  - Keep module boundaries clean: UI in `components/*`, logic in `lib/*`.
+  - When adding new entrypoints or changing routes/permissions, update [wxt.config.ts](mdc:wxt.config.ts) and `public/_locales/*` as needed.
+
+### Notes
+
+- Keep `manifest.permissions` and `host_permissions` minimal; update locales if strings change.
+- Extension icons live in `assets/icons/*` and `public/icons/*`.

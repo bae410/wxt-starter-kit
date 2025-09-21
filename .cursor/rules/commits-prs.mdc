@@ -1,0 +1,27 @@
+---
+alwaysApply: true
+description: Commits and PRs checklist for this repository
+---
+
+### Commits
+
+- Prefer Conventional Commits (not enforced):
+  - Examples: `feat: add sidepanel activity stream`, `fix(storage): handle empty state`.
+- Keep history descriptive and scoped.
+
+### Before opening a PR
+
+- Run quality gates:
+  - `pnpm lint && pnpm typecheck && pnpm test`
+- Include in the PR description:
+  - Clear scope and what changed.
+  - Linked issues.
+  - Screenshots/GIFs for UI changes in `popup`, `options`, `sidepanel`, or `devtools`.
+- If permissions, locales, or routing change:
+  - Update [wxt.config.ts](mdc:wxt.config.ts) and `public/_locales/*`.
+  - Justify minimal permission changes.
+
+### Release hygiene
+
+- Ensure `assets/icons/*` and zip artifact template are correct.
+- Use `pnpm build:all` to validate all targeted browsers when relevant.

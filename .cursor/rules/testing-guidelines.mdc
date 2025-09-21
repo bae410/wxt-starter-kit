@@ -1,0 +1,30 @@
+---
+globs: tests/**,*.test.ts,*.test.tsx
+description: Vitest + happy-dom testing strategy, structure, and commands
+---
+
+### What to test
+
+- **Unit**: `lib/*` utilities, hooks, storage, and services.
+- **Integration**: messaging and storage flows across modules.
+- **Light E2E stubs**: `tests/e2e` for high-level flows; keep fast and focused.
+
+### Structure
+
+- Tests live in `tests/` and may be co-located when helpful.
+- Name tests `*.test.ts` or `*.test.tsx`.
+- Vitest config: see [vitest.config.ts](mdc:vitest.config.ts).
+
+### Commands
+
+```bash
+pnpm test          # run once
+pnpm test:watch    # watch mode
+pnpm test:ui       # UI runner
+pnpm test -- --coverage  # coverage reporters enabled
+```
+
+### Tips
+
+- Default DOM: `happy-dom` for component tests.
+- Aim for meaningful coverage on changed code; no strict thresholds.

@@ -6,6 +6,74 @@ import { analyticsService } from '@lib/services/analytics';
 import { scheduleSyncJob } from '@lib/services/sync';
 import { storageManager } from '@lib/storage/manager';
 
+const CONTENT_SCRIPT_FILES = ['content-scripts/content.js'] as const;
+
+const MESSAGE_ERRORS_WITHOUT_RECEIVER = [
+  'Could not establish connection',
+  'Receiving end does not exist',
+  'The message port closed before a response was received',
+];
+
+function isMissingReceiverError(reason: unknown): boolean {
+  if (!reason) return false;
+  const message = reason instanceof Error ? reason.message : String(reason);
+  return MESSAGE_ERRORS_WITHOUT_RECEIVER.some((snippet) => message.includes(snippet));
+}
+
+async function injectContentScript(target: { tabId: number; frameId?: number }): Promise<boolean> {
+  try {
+    await browser.scripting.executeScript({
+      target:
+        typeof target.frameId === 'number'
+          ? { tabId: target.tabId, frameIds: [target.frameId] }
+          : { tabId: target.tabId },
+      files: [...CONTENT_SCRIPT_FILES],
+    });
+    return true;
+  } catch (error) {
+    console.warn('[wxt-starter] failed to inject content script', error);
+    return false;
+  }
+}
+
+async function deliverSelectionToTab(
+  target: { tabId: number; frameId?: number },
+  selectionText: string,
+): Promise<boolean> {
+  const message = {
+    topic: 'context.selection' as const,
+    payload: { text: selectionText },
+  };
+
+  const sendToTab = () =>
+    typeof target.frameId === 'number'
+      ? browser.tabs.sendMessage(target.tabId, message, { frameId: target.frameId })
+      : browser.tabs.sendMessage(target.tabId, message);
+
+  try {
+    await sendToTab();
+    return true;
+  } catch (initialError) {
+    if (!isMissingReceiverError(initialError)) {
+      console.error('[wxt-starter] failed to deliver selection', initialError);
+      return false;
+    }
+
+    const injected = await injectContentScript(target);
+    if (!injected) {
+      return false;
+    }
+
+    try {
+      await sendToTab();
+      return true;
+    } catch (retryError) {
+      console.error('[wxt-starter] selection delivery failed after reinjection', retryError);
+      return false;
+    }
+  }
+}
+
 export default defineBackground({
   type: 'module',
   main() {
@@ -93,6 +161,10 @@ export default defineBackground({
       }
     });
 
+    messageBus.register('page.event', async (eventPayload) => {
+      return { success: true, payload: eventPayload };
+    });
+
     browser.contextMenus.create({
       id: 'wxt-starter-context',
       title: 'Send selection to WXT Starter',
@@ -104,14 +176,21 @@ export default defineBackground({
         return;
       }
 
-      await browser.tabs.sendMessage(tab.id, {
-        topic: 'context.selection',
-        payload: { text: info.selectionText },
-      });
+      const delivered = await deliverSelectionToTab(
+        {
+          tabId: tab.id,
+          frameId: typeof info.frameId === 'number' ? info.frameId : undefined,
+        },
+        info.selectionText,
+      );
+
+      if (!delivered) {
+        return;
+      }
 
       const historyEntry = {
         timestamp: Date.now(),
-        action: `Selection sent from ${tab.url}`,
+        action: `Selection sent from ${tab.url ?? 'unknown page'}`,
       };
 
       await storageManager.update('activity.history', (draft) => {

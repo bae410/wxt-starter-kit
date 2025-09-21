@@ -1,0 +1,30 @@
+---
+globs: *.ts,*.tsx
+description: TypeScript/React style, imports, and component conventions
+---
+
+### Formatting
+
+- TypeScript everywhere; 2-space indent.
+- Prettier settings (enforced): `singleQuote: true`, `trailingComma: all`, `printWidth: 100`, `semi: true`.
+
+### Imports
+
+- Prefer absolute imports using aliases from [wxt.config.ts](mdc:wxt.config.ts): `@components`, `@lib`, `@assets`, `@entry`.
+- Respect ESLint import ordering. Group external libs, then aliased modules, then relative.
+
+### Components and Hooks
+
+- Components use PascalCase filenames/exports (e.g., `Button.tsx`).
+- Hooks are prefixed with `use*` and live under `lib/hooks/` when shared.
+- Place UI primitives under `components/ui`, feature components under `components/features`.
+
+### Naming & Code Quality
+
+- Use descriptive names; avoid abbreviations and 1–2 character identifiers.
+- Keep functions small with early returns; handle errors explicitly.
+- Avoid deep nesting; prefer extracted helpers in `lib/*`.
+
+### Testing
+
+- Co-locate small unit tests when helpful; otherwise use `tests/` folders. See [vitest.config.ts](mdc:vitest.config.ts).

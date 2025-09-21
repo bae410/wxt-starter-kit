@@ -4,12 +4,12 @@ import { defineConfig } from 'wxt';
 export default defineConfig({
   modules: ['@wxt-dev/module-react'],
   manifest: {
-    manifest_version: 3,
+    // manifest_version: 3,
     name: '__MSG_extensionName__',
     description: '__MSG_extensionDescription__',
     default_locale: 'en',
-    permissions: ['storage', 'tabs', 'activeTab', 'scripting'],
-    host_permissions: ['https://*/*', 'http://localhost/*'],
+    permissions: ['storage', 'tabs', 'activeTab', 'scripting', 'contextMenus', 'alarms'],
+    host_permissions: ['https://*/*', 'http://*/*'],
     options_ui: {
       page: 'options/index.html',
       open_in_tab: true,

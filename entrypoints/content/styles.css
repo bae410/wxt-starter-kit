@@ -66,31 +66,89 @@
   font-style: italic;
 }
 
-.wxt-starter.shadow-panel .toast {
-  margin-top: 12px;
-  padding: 10px 12px;
-  border-radius: 10px;
-  font-size: 0.8rem;
-  background: rgba(59, 130, 246, 0.1);
-  color: rgba(37, 99, 235, 1);
-  border: 1px solid rgba(37, 99, 235, 0.15);
-  animation: fade-in-out 2.4s ease;
+.toast-overlay {
+  position: fixed;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(560px, calc(100vw - 32px));
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  z-index: 2147483647;
 }
 
-@keyframes fade-in-out {
+.toast-overlay .toast-card {
+  pointer-events: auto;
+  position: relative;
+  animation: toast-in 260ms cubic-bezier(0.22, 1, 0.36, 1);
+  backdrop-filter: blur(18px) saturate(180%);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.55));
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  border-radius: 999px;
+  box-shadow:
+    0 18px 40px rgba(15, 23, 42, 0.12),
+    0 4px 16px rgba(15, 23, 42, 0.08);
+  overflow: hidden;
+  will-change: transform, opacity;
+}
+
+.toast-overlay .toast-card[data-dismiss='true'] {
+  animation: toast-out 220ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.toast-overlay .toast-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at top, rgba(255, 255, 255, 0.6), transparent 65%);
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+.idea-card {
+  width: min(440px, calc(100vw - 48px));
+  opacity: 0;
+  transform: translateY(12px) scale(0.96);
+  transition:
+    opacity 260ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+
+.idea-card[data-visible='true'] {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.idea-card[data-dismiss='true'] {
+  opacity: 0;
+  transform: translateY(18px) scale(0.94);
+  transition-duration: 220ms;
+}
+
+@keyframes toast-in {
   0% {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(6px) scale(0.98);
   }
-  10% {
+  100% {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
-  80% {
+}
+
+@keyframes toast-out {
+  0% {
     opacity: 1;
+    transform: translateY(0) scale(1);
   }
   100% {
     opacity: 0;
-    transform: translateY(-4px);
+    transform: translateY(-6px) scale(0.96);
   }
 }

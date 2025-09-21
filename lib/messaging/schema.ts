@@ -32,6 +32,7 @@ export interface MessagePayloads {
   };
   'page.event': {
     payload: Record<string, unknown>;
+    response: { success: boolean; payload: Record<string, unknown> };
   };
 }
 

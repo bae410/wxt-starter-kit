@@ -1,0 +1,48 @@
+---
+alwaysApply: true
+description: Commands and scripts for install, dev, build, quality, tests, and packaging
+---
+
+### Package manager
+
+- Always use `pnpm`.
+
+### Install
+
+```bash
+pnpm install
+```
+
+### Development
+
+```bash
+pnpm dev          # Chromium default
+pnpm dev:chrome   # Chrome
+pnpm dev:firefox  # Firefox
+pnpm dev:edge     # Edge
+```
+
+### Build & bundle
+
+```bash
+pnpm build        # current target
+pnpm build:all    # all browsers
+pnpm zip          # produce distributable zip
+```
+
+### Quality
+
+```bash
+pnpm lint         # ESLint
+pnpm typecheck    # tsc
+pnpm format       # Prettier
+```
+
+### Tests
+
+```bash
+pnpm test         # run once
+pnpm test:watch   # watch mode
+pnpm test:ui      # UI runner
+pnpm test -- --coverage  # coverage
+```

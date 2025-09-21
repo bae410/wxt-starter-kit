@@ -1,0 +1,33 @@
+---
+globs: wxt.config.ts
+description: WXT config guardrails — minimal permissions, host_permissions, aliases, locales
+---
+
+### Manifest guardrails
+
+- Keep `manifest.permissions` minimal; only add what the feature truly needs.
+- Restrict `host_permissions` to exact origins and paths when possible.
+- Update `default_locale` messages in [public/\_locales/en/messages.json](mdc:public/_locales/en/messages.json) (and other locales) when UI strings change.
+- See current manifest and mappings in [wxt.config.ts](mdc:wxt.config.ts).
+
+### When changing permissions or routes
+
+- Document the reason in the PR description.
+- Verify UI copy is localized in `public/_locales/*`.
+- Rebuild and test on all targeted browsers when using `pnpm build:all`.
+
+### Path aliases
+
+Preferred aliases defined here:
+
+- `@components` → `components/`
+- `@lib` → `lib/`
+- `@assets` → `assets/`
+- `@entry` → `entrypoints/`
+
+Prefer absolute imports using these aliases across the codebase.
+
+### Icons & packaging
+
+- Icons: `public/icons/*` for bundled assets.
+- Zip artifact naming is controlled here; keep consistent before releases.
