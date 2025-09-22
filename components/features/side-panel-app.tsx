@@ -1,12 +1,14 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 
-import { BaseLayout } from '@components/layouts/BaseLayout';
+import { BaseLayout } from '@/components/layouts/base-layout';
+import { useStorage } from '@/lib/hooks/use-storage';
+
 import { Button } from '@components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card';
-import { useStorage } from '@lib/hooks/useStorage';
+
 import { messageClient } from '@lib/messaging/client';
 
-export const SidePanelApp: React.FC = () => {
+export const SidePanelApp = () => {
   const { value: history } = useStorage(
     'activity.history',
     [] as Array<{ timestamp: number; action: string }>,

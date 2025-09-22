@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
-import { BaseLayout } from '@components/layouts/BaseLayout';
+import { BaseLayout } from '@/components/layouts/base-layout';
+
 import { Button } from '@components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@components/ui/card';
+
 import { messageClient } from '@lib/messaging/client';
 
-export const DevtoolsApp: React.FC = () => {
+export const DevtoolsApp = () => {
   const [evaluation, setEvaluation] = useState<string>('');
   const [result, setResult] = useState<string>('');
 

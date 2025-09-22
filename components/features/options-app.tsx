@@ -1,14 +1,14 @@
-import React from 'react';
+import { BaseLayout } from '@/components/layouts/base-layout';
+import { useAsyncTask } from '@/lib/hooks/use-async-task';
+import { useStorage } from '@/lib/hooks/use-storage';
 
-import { BaseLayout } from '@components/layouts/BaseLayout';
 import { Button } from '@components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@components/ui/card';
 import { Switch } from '@components/ui/switch';
-import { useAsyncTask } from '@lib/hooks/useAsyncTask';
-import { useStorage } from '@lib/hooks/useStorage';
+
 import { messageClient } from '@lib/messaging/client';
 
-export const OptionsApp: React.FC = () => {
+export const OptionsApp = () => {
   const {
     value: preferences,
     updateValue,
