@@ -1,3 +1,4 @@
+import { AnimatePresence, motion, useAnimationControls, useReducedMotion } from 'framer-motion';
 import { Copy, Sparkles, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Root } from 'react-dom/client';
@@ -5,7 +6,6 @@ import { createRoot } from 'react-dom/client';
 import type { ContentScriptContext } from 'wxt/client';
 import { createShadowRootUi } from 'wxt/client';
 
-import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 
 interface UiController {
@@ -13,6 +13,116 @@ interface UiController {
   flashMessage: (text: string) => void;
   destroy: () => void;
 }
+
+// Animation variants for enhanced motion design
+const toastVariants = {
+  initial: {
+    opacity: 0,
+    y: -20,
+    scale: 0.95,
+  },
+  animate: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      type: 'spring' as const,
+      stiffness: 300,
+      damping: 30,
+      mass: 0.8,
+    },
+  },
+  exit: {
+    opacity: 0,
+    y: -15,
+    scale: 0.96,
+    transition: {
+      type: 'spring' as const,
+      stiffness: 400,
+      damping: 40,
+      mass: 0.6,
+    },
+  },
+};
+
+const listItemVariants = {
+  initial: {
+    opacity: 0,
+    x: -10,
+  },
+  animate: (index: number) => ({
+    opacity: 1,
+    x: 0,
+    transition: {
+      type: 'spring' as const,
+      stiffness: 300,
+      damping: 25,
+      delay: index * 0.08,
+    },
+  }),
+};
+
+const buttonVariants = {
+  initial: { scale: 1 },
+  hover: {
+    scale: 1.01,
+    transition: {
+      type: 'spring' as const,
+      stiffness: 400,
+      damping: 17,
+    },
+  },
+  tap: {
+    scale: 0.97,
+    transition: {
+      type: 'spring' as const,
+      stiffness: 400,
+      damping: 20,
+    },
+  },
+};
+
+const dragVariants = {
+  drag: {
+    scale: 1.02,
+    rotate: 2,
+    transition: {
+      type: 'spring' as const,
+      stiffness: 400,
+      damping: 30,
+    },
+  },
+};
+
+const stackedCardVariants = {
+  initial: {
+    opacity: 0,
+    y: -16,
+    scale: 0.96,
+  },
+  animate: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      type: 'spring' as const,
+      stiffness: 420,
+      damping: 28,
+      mass: 0.85,
+    },
+  },
+  exit: {
+    opacity: 0,
+    y: -18,
+    scale: 0.95,
+    transition: {
+      type: 'spring' as const,
+      stiffness: 360,
+      damping: 26,
+      mass: 0.8,
+    },
+  },
+};
 
 export async function createShadowRootUI(ctx: ContentScriptContext): Promise<UiController> {
   const mountNodes = new WeakMap<Root, HTMLElement>();
@@ -50,102 +160,112 @@ export async function createShadowRootUI(ctx: ContentScriptContext): Promise<UiC
 
   const ToastLayer = ({ host }: { host: HTMLElement }) => {
     const [message, setMessage] = useState<string | null>(null);
-    const [isClosing, setIsClosing] = useState(false);
     const [showCard, setShowCard] = useState(false);
-    const [cardClosing, setCardClosing] = useState(false);
+    const shouldReduceMotion = useReducedMotion();
+    const stackControls = useAnimationControls();
 
-    const toastHideTimeoutRef = useRef<number | null>(null);
     const cardShowTimeoutRef = useRef<number | null>(null);
-    const cardHideTimeoutRef = useRef<number | null>(null);
-
-    const clearTimers = useCallback(() => {
-      if (toastHideTimeoutRef.current) {
-        window.clearTimeout(toastHideTimeoutRef.current);
-        toastHideTimeoutRef.current = null;
-      }
-      if (cardShowTimeoutRef.current) {
-        window.clearTimeout(cardShowTimeoutRef.current);
-        cardShowTimeoutRef.current = null;
-      }
-      if (cardHideTimeoutRef.current) {
-        window.clearTimeout(cardHideTimeoutRef.current);
-        cardHideTimeoutRef.current = null;
-      }
-    }, []);
-
-    const startToastDismiss = useCallback(() => {
-      if (isClosing) return;
-      setIsClosing(true);
-      if (toastHideTimeoutRef.current) {
-        window.clearTimeout(toastHideTimeoutRef.current);
-      }
-      toastHideTimeoutRef.current = window.setTimeout(() => {
-        setIsClosing(false);
-        setMessage(null);
-        toastHideTimeoutRef.current = null;
-      }, 220);
-    }, [isClosing]);
 
     const closeToast = useCallback(() => {
       if (!message) return;
       pendingToast = null;
 
+      // Clear any pending card show timeout
       if (cardShowTimeoutRef.current) {
         window.clearTimeout(cardShowTimeoutRef.current);
         cardShowTimeoutRef.current = null;
-        setShowCard(false);
       }
 
-      if (showCard && !cardClosing) {
-        setCardClosing(true);
-        if (cardHideTimeoutRef.current) {
-          window.clearTimeout(cardHideTimeoutRef.current);
+      // Hide card first, then toast (Framer Motion will handle the timing)
+      setShowCard(false);
+
+      // Use a short delay to let the card animation start before hiding toast
+      setTimeout(() => {
+        setMessage(null);
+      }, 100);
+    }, [message]);
+
+    // Gesture handling for drag-to-dismiss
+    const handleDragEnd = useCallback(
+      (
+        event: MouseEvent | TouchEvent | PointerEvent,
+        info: { velocity: { x: number; y: number }; offset: { x: number; y: number } },
+      ) => {
+        const { velocity, offset } = info;
+        const threshold = 100;
+        const velocityThreshold = 500;
+
+        if (offset.y < -threshold || velocity.y < -velocityThreshold) {
+          closeToast();
         }
-        cardHideTimeoutRef.current = window.setTimeout(() => {
-          setShowCard(false);
-          setCardClosing(false);
-          cardHideTimeoutRef.current = null;
-          startToastDismiss();
-        }, 220);
-        return;
-      }
 
-      if (cardHideTimeoutRef.current) {
-        return;
-      }
+        stackControls.start({
+          y: 0,
+          transition: shouldReduceMotion
+            ? { duration: 0.15 }
+            : {
+                type: 'spring',
+                stiffness: 520,
+                damping: 36,
+                mass: 0.6,
+              },
+        });
+      },
+      [closeToast, shouldReduceMotion, stackControls],
+    );
 
-      startToastDismiss();
-    }, [cardClosing, message, showCard, startToastDismiss]);
+    // Copy functionality for the copy button
+    const handleCopy = useCallback(async () => {
+      if (!message) return;
+
+      try {
+        await navigator.clipboard.writeText(message);
+        // Could add a success animation or feedback here
+      } catch (error) {
+        console.warn('Failed to copy to clipboard:', error);
+      }
+    }, [message]);
+
+    const clearTimers = useCallback(() => {
+      if (cardShowTimeoutRef.current) {
+        window.clearTimeout(cardShowTimeoutRef.current);
+        cardShowTimeoutRef.current = null;
+      }
+    }, []);
 
     useEffect(() => {
       control.toast = (text: string) => {
-        setIsClosing(false);
-        setCardClosing(false);
         setShowCard(false);
         clearTimers();
 
         setMessage(text);
         pendingToast = null;
 
-        cardShowTimeoutRef.current = window.setTimeout(() => {
-          setShowCard(true);
-          cardShowTimeoutRef.current = null;
-        }, 260);
+        // Show card after toast appears (adjusted for Framer Motion timing)
+        cardShowTimeoutRef.current = window.setTimeout(
+          () => {
+            setShowCard(true);
+            cardShowTimeoutRef.current = null;
+          },
+          shouldReduceMotion ? 50 : 300,
+        );
       };
 
+      // Handle any pending toast that was queued before component was ready
       if (pendingToast) {
         const queued = pendingToast;
         pendingToast = null;
-        setIsClosing(false);
-        setCardClosing(false);
         setShowCard(false);
         clearTimers();
         setMessage(queued);
 
-        cardShowTimeoutRef.current = window.setTimeout(() => {
-          setShowCard(true);
-          cardShowTimeoutRef.current = null;
-        }, 260);
+        cardShowTimeoutRef.current = window.setTimeout(
+          () => {
+            setShowCard(true);
+            cardShowTimeoutRef.current = null;
+          },
+          shouldReduceMotion ? 50 : 300,
+        );
       }
 
       return () => {
@@ -154,7 +274,7 @@ export async function createShadowRootUI(ctx: ContentScriptContext): Promise<UiC
         };
         clearTimers();
       };
-    }, [clearTimers]);
+    }, [clearTimers, shouldReduceMotion]);
 
     useEffect(() => {
       if (!message) {
@@ -181,78 +301,183 @@ export async function createShadowRootUI(ctx: ContentScriptContext): Promise<UiC
       [clearTimers],
     );
 
-    if (!message) {
-      return null;
-    }
+    // Animation variants for reduced motion
+    const getToastVariants = () => {
+      if (shouldReduceMotion) {
+        return {
+          initial: { opacity: 0 },
+          animate: { opacity: 1 },
+          exit: { opacity: 0 },
+        };
+      }
+      return toastVariants;
+    };
 
     return (
       <div className="toast-overlay">
-        <div
-          className="toast-card group relative flex min-h-[48px] items-center gap-4 pl-5 pr-12 py-3 sm:pl-6 sm:pr-14"
-          data-dismiss={isClosing ? 'true' : 'false'}
-        >
-          <button
-            type="button"
-            onClick={closeToast}
-            className="absolute right-2 top-2 inline-flex h-7 w-7 items-center justify-center rounded-full border border-white/60 bg-white/50 text-slate-500 opacity-0 shadow-sm backdrop-blur-sm transition-opacity duration-150 hover:bg-white/70 hover:text-slate-700 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 group-hover:opacity-100"
-            aria-label="Dismiss toast"
-          >
-            <X className="h-4 w-4" aria-hidden />
-          </button>
-          <div className="flex h-9 w-9 items-center justify-center rounded-full border border-white/70 bg-white/55 text-slate-800 shadow-sm backdrop-blur-sm">
-            <Sparkles className="h-4 w-4" aria-hidden />
-          </div>
-          <Badge
-            variant="secondary"
-            className="flex-shrink-0 border border-white/65 bg-white/55 px-3 py-1 text-sm font-semibold normal-case tracking-tight text-slate-700 shadow-sm backdrop-blur-sm"
-          >
-            Whisper
-          </Badge>
-          <p className="flex-1 text-lg font-semibold leading-none tracking-tight text-slate-800 drop-shadow-[0_1px_1px_rgba(255,255,255,0.4)]">
-            {message}
-          </p>
-        </div>
+        <AnimatePresence mode="sync">
+          {message && (
+            <motion.div
+              key="toast-stack"
+              layout
+              drag={!shouldReduceMotion ? 'y' : false}
+              dragListener
+              dragMomentum={false}
+              dragConstraints={{ top: -220, bottom: 80 }}
+              dragElastic={0.25}
+              whileDrag={!shouldReduceMotion ? dragVariants.drag : undefined}
+              onDragStart={() => stackControls.stop()}
+              onDragEnd={handleDragEnd}
+              animate={stackControls}
+              initial={{ y: 0 }}
+              className="toast-stack flex cursor-default flex-col items-stretch"
+              style={{ cursor: !shouldReduceMotion ? 'grab' : 'default' }}
+            >
+              <motion.div
+                layout="position"
+                layoutId="toast-shell"
+                variants={getToastVariants()}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                className="toast-card group/toast relative flex h-12 items-center gap-3 px-5 sm:gap-4 sm:px-6"
+              >
+                <span className="toast-ambient" aria-hidden />
 
-        <Card
-          className="idea-card pointer-events-auto relative overflow-hidden rounded-[28px] border border-white/60 bg-gradient-to-b from-white/92 via-white/80 to-white/65 text-slate-700 shadow-[0_24px_60px_rgba(15,23,42,0.14)] backdrop-blur-[22px]"
-          data-visible={showCard ? 'true' : 'false'}
-          data-dismiss={cardClosing ? 'true' : 'false'}
-        >
-          <button
-            type="button"
-            className="absolute right-4 top-4 inline-flex h-8 w-8 items-center justify-center rounded-full border border-white/60 bg-white/70 text-slate-500 shadow-sm transition-colors duration-150 hover:bg-white/85 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
-            aria-label="Copy suggestion"
-          >
-            <Copy className="h-4 w-4" aria-hidden />
-          </button>
-          <CardContent className="space-y-5 px-5 pb-6 pt-6 sm:px-7 sm:pb-7">
-            <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.32em] text-slate-400">
-              <span>Double press</span>
-              <span className="rounded-full border border-white/70 bg-white/80 px-2 py-1 text-sm font-semibold normal-case tracking-tight text-slate-600 shadow-inner">
-                ⌘
-              </span>
-              <span className="tracking-[0.28em]">to paste anywhere</span>
-            </div>
-            <div className="space-y-3 text-sm leading-relaxed text-slate-700 sm:text-base">
-              <div className="flex items-start gap-3">
-                <span className="mt-1 inline-block h-1.5 w-1.5 flex-shrink-0 rounded-full bg-gradient-to-r from-pink-400 via-rose-400 to-orange-300" />
-                <span>Pickle Glass marketing strategy ideas</span>
-              </div>
-              <div className="flex items-start gap-3">
-                <span className="mt-1 inline-block h-1.5 w-1.5 flex-shrink-0 rounded-full bg-gradient-to-r from-sky-400 via-blue-400 to-indigo-400" />
-                <span>Hackathon for AI-glasses apps</span>
-              </div>
-              <div className="flex items-start gap-3">
-                <span className="mt-1 inline-block h-1.5 w-1.5 flex-shrink-0 rounded-full bg-gradient-to-r from-emerald-400 via-lime-400 to-yellow-300" />
-                <span>Campus tour demos</span>
-              </div>
-              <div className="flex items-start gap-3">
-                <span className="mt-1 inline-block h-1.5 w-1.5 flex-shrink-0 rounded-full bg-gradient-to-r from-violet-400 via-purple-400 to-pink-300" />
-                <span>Creator collab campaigns</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+                <div className="relative z-10 flex h-full items-center gap-3 sm:gap-4">
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border border-white/70 bg-white/60 text-slate-800 shadow-sm backdrop-blur-sm">
+                      <Sparkles className="h-4 w-4" aria-hidden />
+                    </div>
+                    <span className="text-slate-400">Lumi</span>
+                  </div>
+                  <motion.p
+                    className="flex-1 text-lg font-semibold leading-none tracking-tight text-slate-800 drop-shadow-[0_1px_1px_rgba(255,255,255,0.4)]"
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.2, type: 'spring', stiffness: 300, damping: 25 }}
+                  >
+                    {message}
+                  </motion.p>
+                  <motion.button
+                    type="button"
+                    onClick={closeToast}
+                    className="glass-button pointer-events-none inline-flex size-6 flex-shrink-0 items-center justify-center text-slate-500 shadow-sm opacity-0 transition-opacity duration-200 group-hover/toast:pointer-events-auto group-hover/toast:opacity-100 focus-visible:pointer-events-auto focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+                    aria-label="Dismiss toast"
+                    variants={buttonVariants}
+                    initial="initial"
+                    whileHover="hover"
+                    whileTap="tap"
+                  >
+                    <X className="h-4 w-4" aria-hidden />
+                  </motion.button>
+                </div>
+              </motion.div>
+
+              <AnimatePresence>
+                {showCard && (
+                  <motion.div
+                    key="card"
+                    layout
+                    layoutId="idea-card"
+                    {...(shouldReduceMotion
+                      ? {
+                          initial: { opacity: 0 },
+                          animate: { opacity: 1 },
+                          exit: { opacity: 0 },
+                          transition: { duration: 0.18 },
+                        }
+                      : {
+                          variants: stackedCardVariants,
+                          initial: 'initial' as const,
+                          animate: 'animate' as const,
+                          exit: 'exit' as const,
+                        })}
+                    className="stacked-card z-0"
+                  >
+                    <Card className="overflow-hidden rounded-[32px] border border-white/60 bg-gradient-to-b from-white/92 via-white/80 to-white/65 text-slate-700 shadow-[0_24px_60px_rgba(15,23,42,0.14)] backdrop-blur-[28px]">
+                      <CardContent className="relative z-20 px-5 py-5 sm:px-7 sm:py-6">
+                        <div className="flex flex-col gap-5">
+                          <motion.div
+                            className="flex flex-col gap-3 text-xs font-medium normal-case tracking-normal text-slate-400 sm:flex-row sm:items-center sm:justify-between"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{
+                              delay: 0.25,
+                              type: 'spring',
+                              stiffness: 300,
+                              damping: 25,
+                            }}
+                          >
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span>Double press</span>
+                              <span className="rounded-full border border-white/70 bg-white/80 px-2 py-1 text-sm font-semibold normal-case tracking-tight text-slate-600 shadow-inner">
+                                ⌘
+                              </span>
+                              <span>to paste anywhere</span>
+                            </div>
+
+                            <motion.button
+                              type="button"
+                              onClick={handleCopy}
+                              className="glass-button inline-flex size-6 items-center justify-center text-slate-500 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+                              aria-label="Copy suggestion"
+                              variants={buttonVariants}
+                              initial="initial"
+                              whileHover="hover"
+                              whileTap="tap"
+                            >
+                              <Copy className="h-4 w-4" aria-hidden />
+                            </motion.button>
+                          </motion.div>
+
+                          <motion.div
+                            className="rounded-2xl border border-white/60 bg-white/70 p-4 shadow-[0_12px_28px_rgba(15,23,42,0.08)] backdrop-blur-sm sm:p-5"
+                            initial={{ opacity: 0, y: 12 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{
+                              delay: 0.35,
+                              type: 'spring',
+                              stiffness: 280,
+                              damping: 24,
+                            }}
+                          >
+                            <ul className="flex flex-col gap-3 text-sm leading-relaxed text-slate-700 sm:text-base">
+                              {[
+                                {
+                                  text: 'Pickle Glass marketing strategy ideas',
+                                  color: 'gradient-dot--pink',
+                                },
+                                {
+                                  text: 'Hackathon for AI-glasses apps',
+                                  color: 'gradient-dot--blue',
+                                },
+                                { text: 'Campus tour demos', color: 'gradient-dot--green' },
+                                { text: 'Creator collab campaigns', color: 'gradient-dot--purple' },
+                              ].map((item, index) => (
+                                <motion.li
+                                  key={index}
+                                  className="flex items-center gap-3"
+                                  variants={listItemVariants}
+                                  initial="initial"
+                                  animate="animate"
+                                  custom={index}
+                                >
+                                  <span className={`gradient-dot ${item.color}`} />
+                                  <span>{item.text}</span>
+                                </motion.li>
+                              ))}
+                            </ul>
+                          </motion.div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     );
   };
