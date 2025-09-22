@@ -1,8 +1,8 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 
+import { DevtoolsApp } from '@/components/features/dev-tools-app';
 import '@assets/styles/globals.css';
-import { DevtoolsApp } from '@components/features/DevtoolsApp';
 
 const container = document.getElementById('root');
 if (!container) {

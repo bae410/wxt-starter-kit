@@ -1,8 +1,8 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 
+import { OptionsApp } from '@/components/features/options-app';
 import '@assets/styles/globals.css';
-import { OptionsApp } from '@components/features/OptionsApp';
 
 const container = document.getElementById('root');
 if (!container) {
