@@ -1,12 +1,14 @@
 import { Activity, RefreshCw, Settings2, ShieldCheck } from 'lucide-react';
 import type { FC } from 'react';
 
+import { useAsyncTask } from '@/lib/hooks/use-async-task';
+import { useToggle } from '@/lib/hooks/use-storage';
+
 import { Badge } from '@components/ui/badge';
 import { Button } from '@components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@components/ui/card';
 import { Switch } from '@components/ui/switch';
-import { useAsyncTask } from '@lib/hooks/useAsyncTask';
-import { useToggle } from '@lib/hooks/useStorage';
+
 import { messageClient } from '@lib/messaging/client';
 
 const PopupApp: FC = () => {

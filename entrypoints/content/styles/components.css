@@ -1,0 +1,521 @@
+/* Main Content Panel with Enhanced Glass Effect */
+.wxt-starter.shadow-panel {
+  position: relative;
+  min-width: 280px;
+  padding: 16px;
+  border-radius: 16px;
+
+  /* Enhanced Glass Effect */
+  background: linear-gradient(
+    135deg,
+    var(--glass-primary) 0%,
+    var(--glass-secondary) 50%,
+    var(--glass-tertiary) 100%
+  );
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+
+  /* Multi-layer Shadow System */
+  box-shadow:
+    0 2px 8px var(--shadow-light),
+    0 8px 32px var(--shadow-medium),
+    0 16px 64px var(--shadow-heavy),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+
+  border: 1px solid var(--glass-border);
+  color: var(--text-primary);
+
+  /* Performance Optimization */
+  will-change: transform, opacity;
+  isolation: isolate;
+}
+
+/* Glass Shimmer Effect */
+.wxt-starter.shadow-panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent 0%, var(--glass-shimmer) 50%, transparent 100%);
+  animation: shimmer 3s ease-in-out infinite;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Light Refraction Effect */
+.wxt-starter.shadow-panel::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.3) 0%, transparent 50%);
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Enhanced Typography */
+.wxt-starter.shadow-panel header {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.wxt-starter.shadow-panel header strong {
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+}
+
+.wxt-starter.shadow-panel .badge {
+  position: relative;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(139, 92, 246, 0.08));
+  color: var(--accent-color);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.1);
+}
+
+.wxt-starter.shadow-panel section {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  gap: 8px;
+}
+
+.wxt-starter.shadow-panel h4 {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+.wxt-starter.shadow-panel p {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  word-break: break-word;
+  color: var(--text-primary);
+}
+
+.wxt-starter.shadow-panel p.empty {
+  color: var(--text-tertiary);
+  font-style: italic;
+}
+
+/* Enhanced Toast Overlay Container */
+.toast-overlay {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(560px, calc(100vw - 32px));
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  z-index: 2147483647;
+}
+
+/* Stacked Toast + Card Container */
+.toast-stack {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+  pointer-events: auto;
+}
+
+.toast-stack::before {
+  content: '';
+  position: absolute;
+  inset: 12px 0 auto;
+  height: 40px;
+  border-radius: 999px;
+  background: radial-gradient(ellipse at center, rgba(15, 23, 42, 0.18), transparent 70%);
+  filter: blur(18px);
+  opacity: 0.6;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.stacked-card {
+  position: relative;
+  margin-top: 16px;
+  pointer-events: auto;
+}
+
+.stacked-card::before {
+  content: '';
+  position: absolute;
+  top: -16px;
+  left: 32px;
+  right: 32px;
+  height: 24px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(148, 163, 184, 0.14), transparent 75%);
+  filter: blur(10px);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Enhanced Toast Card with Advanced Glassmorphism */
+.toast-overlay .toast-card {
+  position: relative;
+  pointer-events: auto;
+  border-radius: 999px;
+  overflow: hidden;
+  isolation: isolate;
+
+  /* Advanced Glass Effect with animated tertiary border */
+  border: 1px solid transparent;
+  background:
+    linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.95) 0%,
+        rgba(255, 255, 255, 0.85) 25%,
+        rgba(255, 255, 255, 0.75) 50%,
+        rgba(255, 255, 255, 0.68) 100%
+      )
+      padding-box,
+    linear-gradient(
+        120deg,
+        rgba(255, 255, 255, 0.78) 0%,
+        rgba(214, 224, 255, 0.65) 22%,
+        rgba(148, 163, 184, 0.45) 45%,
+        rgba(94, 106, 132, 0.4) 62%,
+        rgba(255, 255, 255, 0.8) 100%
+      )
+      border-box;
+  background-clip: padding-box, border-box;
+  background-origin: padding-box, border-box;
+  background-size:
+    100% 100%,
+    220% 220%;
+  background-position:
+    center,
+    0% 50%;
+  animation: toast-border-sheen 9s ease-in-out infinite;
+  backdrop-filter: blur(24px) saturate(200%) brightness(110%);
+  -webkit-backdrop-filter: blur(24px) saturate(200%) brightness(110%);
+
+  /* Enhanced Border System */
+  box-shadow:
+    0 2px 8px rgba(15, 23, 42, 0.06),
+    0 8px 32px rgba(15, 23, 42, 0.08),
+    0 20px 60px rgba(15, 23, 42, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.5);
+
+  /* Performance Optimization */
+  will-change: transform, opacity;
+  transform-origin: center top;
+}
+
+/* Toast Card Shimmer Effect */
+.toast-overlay .toast-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -90%;
+  width: 180%;
+  height: 100%;
+  background: linear-gradient(
+    110deg,
+    rgba(62, 140, 255, 0) 0%,
+    rgba(126, 234, 255, 0.45) 16%,
+    rgba(255, 255, 255, 0.88) 42%,
+    rgba(255, 187, 255, 0.5) 64%,
+    rgba(255, 224, 160, 0.4) 80%,
+    rgba(62, 140, 255, 0) 100%
+  );
+  animation: shimmer-slide 4.6s ease-in-out infinite alternate;
+  animation-fill-mode: both;
+  mix-blend-mode: screen;
+  filter: saturate(1.35) brightness(1.25);
+  will-change: transform, opacity;
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* Toast Card Light Refraction */
+.toast-overlay .toast-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(
+      ellipse at 38% 18%,
+      rgba(255, 255, 255, 0.65) 0%,
+      rgba(171, 226, 255, 0.4) 36%,
+      rgba(255, 255, 255, 0) 72%
+    ),
+    radial-gradient(ellipse at 76% 68%, rgba(255, 194, 255, 0.38) 0%, rgba(255, 255, 255, 0) 68%);
+  mix-blend-mode: screen;
+  pointer-events: none;
+  z-index: 4;
+}
+
+.toast-ambient {
+  position: absolute;
+  inset: -18% -18% -28% -18%;
+  background:
+    radial-gradient(circle at 18% 22%, rgba(126, 234, 255, 0.6), rgba(126, 234, 255, 0) 58%),
+    radial-gradient(circle at 78% 64%, rgba(255, 189, 255, 0.55), rgba(255, 189, 255, 0) 60%),
+    radial-gradient(circle at 52% 124%, rgba(255, 224, 160, 0.52), rgba(255, 224, 160, 0) 72%);
+  background-repeat: no-repeat;
+  background-size:
+    115% 115%,
+    145% 145%,
+    185% 185%;
+  mix-blend-mode: screen;
+  opacity: 0.68;
+  animation: toast-ambient-flow 8.2s ease-in-out infinite alternate;
+  filter: blur(14px) saturate(1.25);
+  pointer-events: none;
+  z-index: 1;
+  transform: translateZ(0);
+}
+
+.toast-ambient::after {
+  content: '';
+  position: absolute;
+  inset: -30% -40% -24% -40%;
+  background: conic-gradient(
+    from 120deg,
+    rgba(120, 230, 255, 0.65),
+    rgba(255, 210, 170, 0.55),
+    rgba(255, 182, 255, 0.6),
+    rgba(120, 230, 255, 0.65)
+  );
+  opacity: 0.42;
+  filter: blur(28px) saturate(1.35);
+  mix-blend-mode: screen;
+  animation: toast-ambient-aurora 11s ease-in-out infinite;
+}
+
+/* Enhanced Idea Card with Modern Glass Effects */
+.idea-card {
+  position: relative;
+  width: min(480px, calc(100vw - 48px));
+  border-radius: 32px;
+  overflow: hidden;
+  isolation: isolate;
+
+  /* Advanced Glass Background */
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(255, 255, 255, 0.88) 25%,
+    rgba(255, 255, 255, 0.82) 50%,
+    rgba(255, 255, 255, 0.75) 75%,
+    rgba(255, 255, 255, 0.68) 100%
+  );
+  backdrop-filter: blur(28px) saturate(180%) brightness(105%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%) brightness(105%);
+
+  /* Enhanced Shadow and Border System */
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow:
+    0 4px 16px rgba(15, 23, 42, 0.06),
+    0 12px 48px rgba(15, 23, 42, 0.08),
+    0 24px 96px rgba(15, 23, 42, 0.12),
+    0 48px 128px rgba(15, 23, 42, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.4);
+
+  /* Performance and Transform Setup */
+  will-change: transform, opacity;
+  transform-origin: center top;
+}
+
+/* Idea Card Multi-layer Glass Effects */
+.idea-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.4) 0%,
+    transparent 25%,
+    transparent 75%,
+    rgba(255, 255, 255, 0.2) 100%
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+.idea-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse at 25% 15%,
+    rgba(255, 255, 255, 0.6) 0%,
+    rgba(255, 255, 255, 0.3) 25%,
+    transparent 60%
+  );
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Enhanced Keyframe Animations */
+@keyframes shimmer {
+  0%,
+  100% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  50% {
+    transform: translateX(100%);
+    opacity: 1;
+  }
+}
+
+@keyframes shimmer-slide {
+  0% {
+    transform: translateX(-80%) skewX(-14deg);
+    opacity: 0.08;
+  }
+  50% {
+    transform: translateX(0%) skewX(-10deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(80%) skewX(-14deg);
+    opacity: 0.08;
+  }
+}
+
+@keyframes toast-border-sheen {
+  0% {
+    background-position:
+      center,
+      0% 50%;
+  }
+  50% {
+    background-position:
+      center,
+      100% 50%;
+  }
+  100% {
+    background-position:
+      center,
+      0% 50%;
+  }
+}
+
+@keyframes toast-ambient-flow {
+  0% {
+    background-position:
+      15% 25%,
+      85% 75%,
+      50% 110%;
+    opacity: 0.45;
+  }
+  50% {
+    background-position:
+      70% 45%,
+      30% 80%,
+      60% 95%;
+    opacity: 0.65;
+  }
+  100% {
+    background-position:
+      25% 70%,
+      75% 35%,
+      40% 120%;
+    opacity: 0.5;
+  }
+}
+
+@keyframes toast-ambient-aurora {
+  0% {
+    transform: rotate(0deg) scale(1.05);
+    opacity: 0.36;
+  }
+  45% {
+    transform: rotate(120deg) scale(1.12);
+    opacity: 0.48;
+  }
+  100% {
+    transform: rotate(360deg) scale(1.05);
+    opacity: 0.4;
+  }
+}
+
+/* Utility Classes for Micro-interactions */
+.glass-button {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
+  transition:
+    background-color 0.18s ease,
+    box-shadow 0.18s ease,
+    color 0.18s ease;
+}
+
+.glass-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.12);
+}
+
+.glass-button:active {
+  background: rgba(255, 255, 255, 0.24);
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.12);
+}
+
+/* Color Gradient Dots for List Items */
+.gradient-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--dot-start), var(--dot-end));
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  flex-shrink: 0;
+}
+
+.gradient-dot--purple {
+  --dot-start: #8b5cf6;
+  --dot-end: #a78bfa;
+}
+
+.gradient-dot--blue {
+  --dot-start: #3b82f6;
+  --dot-end: #60a5fa;
+}
+
+.gradient-dot--green {
+  --dot-start: #10b981;
+  --dot-end: #34d399;
+}
+
+.gradient-dot--pink {
+  --dot-start: #ec4899;
+  --dot-end: #f472b6;
+}
+
+.gradient-dot--orange {
+  --dot-start: #f59e0b;
+  --dot-end: #fbbf24;
+}

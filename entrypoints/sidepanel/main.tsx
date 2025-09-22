@@ -1,8 +1,8 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 
+import { SidePanelApp } from '@/components/features/side-panel-app';
 import '@assets/styles/globals.css';
-import { SidePanelApp } from '@components/features/SidePanelApp';
 
 const container =
   document.getElementById('root') ?? document.body.appendChild(document.createElement('div'));
