@@ -74,8 +74,8 @@ export function ContentToastLayer({ host, bridge }: ContentToastLayerProps) {
 
     try {
       await navigator.clipboard.writeText(message);
-    } catch (error) {
-      console.warn('Failed to copy to clipboard:', error);
+    } catch {
+      // Clipboard API not available or permission denied
     }
   }, [message]);
 
@@ -118,25 +118,28 @@ export function ContentToastLayer({ host, bridge }: ContentToastLayerProps) {
               initial="initial"
               animate="animate"
               exit="exit"
-              className="toast-card group/toast relative flex h-12 items-center gap-3 px-5 sm:gap-4 sm:px-6"
+              className="toast-card group/toast relative flex min-h-12 items-center gap-3 py-3 px-5 sm:gap-4"
             >
               <span className="toast-ambient" aria-hidden />
 
-              <div className="relative z-10 flex h-full items-center gap-3 sm:gap-4">
+              <div className="relative z-10 flex items-center gap-3 sm:gap-4">
                 <div className="flex items-center gap-2">
                   <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border border-white/70 bg-white/60 text-slate-800 shadow-sm backdrop-blur-sm">
                     <Sparkles className="h-4 w-4" aria-hidden />
                   </div>
                   <span className="text-slate-400">{TOAST_SOURCE_LABEL}</span>
                 </div>
-                <motion.p
-                  className="flex-1 text-lg font-semibold leading-none tracking-tight text-slate-800 drop-shadow-[0_1px_1px_rgba(255,255,255,0.4)]"
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.2, type: 'spring', stiffness: 300, damping: 25 }}
-                >
-                  {message}
-                </motion.p>
+                <div className="flex-1">
+                  <div className="text-lg font-semibold leading-snug tracking-tight text-slate-800 drop-shadow-[0_1px_1px_rgba(255,255,255,0.4)] break-words line-clamp-2">
+                    <motion.span
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.2, type: 'spring', stiffness: 300, damping: 25 }}
+                    >
+                      {message}
+                    </motion.span>
+                  </div>
+                </div>
                 <motion.button
                   type="button"
                   onClick={closeToast}

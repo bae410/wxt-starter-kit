@@ -7,11 +7,11 @@ import { createShadowRootUi } from 'wxt/client';
 import { ContentSelectionPanel } from '@components/features/content-selection-panel';
 import { ContentToastLayer } from '@components/features/content-toast-layer';
 
-import { createToastBridge } from '@lib/content/hooks/use-toast-controls';
+import { createToastBridge, type ToastMessageOptions } from '@lib/content/hooks/use-toast-controls';
 
-interface UiController {
+export interface ContentUiController {
   updateSelection: (value: string) => void;
-  flashMessage: (text: string) => void;
+  flashMessage: (text: string, options?: ToastMessageOptions) => void;
   destroy: () => void;
 }
 
@@ -19,7 +19,7 @@ interface UiController {
  * Mounts the content script UI into shadow DOM roots and returns a controller
  * for sending selection updates and toast messages across those isolated trees.
  */
-export async function createShadowRootUI(ctx: ContentScriptContext): Promise<UiController> {
+export async function createShadowRootUI(ctx: ContentScriptContext): Promise<ContentUiController> {
   const mountNodes = new WeakMap<Root, HTMLElement>();
   const selectionControl: { setSelection: (value: string) => void } = {
     setSelection: () => undefined,
@@ -93,7 +93,7 @@ export async function createShadowRootUI(ctx: ContentScriptContext): Promise<UiC
 
   return {
     updateSelection: (value) => selectionControl.setSelection(value),
-    flashMessage: (text) => toastBridge.enqueue(text),
+    flashMessage: (text, options) => toastBridge.enqueue(text, options),
     destroy: () => {
       ui.remove();
       toastUi.remove();

@@ -519,3 +519,130 @@
   --dot-start: #f59e0b;
   --dot-end: #fbbf24;
 }
+
+/* Simplified Text Truncation - 2 Lines Only */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
+  line-height: 1.375;
+  /* Ensure consistent spacing and visual hierarchy */
+  max-height: 2.75em; /* Fallback for browsers without line-clamp support */
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Modified line-clamp for inline link approach */
+.line-clamp-3-with-link {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+  position: relative;
+}
+
+.line-clamp-none {
+  display: block;
+  -webkit-line-clamp: unset;
+  -webkit-box-orient: unset;
+  overflow: visible;
+}
+
+/* Original Expandable Text Button (kept for fallback) */
+.expand-text-button {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 0.25rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: rgb(100 116 139);
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+  transition: all 0.15s ease;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.expand-text-button:hover {
+  background: rgba(255, 255, 255, 0.8);
+  color: rgb(71 85 105);
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.1);
+}
+
+.expand-text-button:active {
+  background: rgba(255, 255, 255, 0.7);
+  transform: translateY(0.5px);
+}
+
+/* Inline Link Styles for Text Expansion */
+.expand-text-link {
+  display: inline;
+  position: relative;
+  z-index: 1;
+}
+
+.ellipsis-spacer {
+  color: rgb(100 116 139);
+  margin-right: 0.25rem;
+  font-weight: normal;
+}
+
+.more-link {
+  display: inline;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  color: rgb(59 130 246); /* Blue link color */
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  position: relative;
+}
+
+.more-link::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background-color: currentColor;
+  transition: width 0.2s ease;
+}
+
+.more-link:hover {
+  color: rgb(37 99 235); /* Darker blue on hover */
+}
+
+.more-link:hover::after {
+  width: 100%;
+}
+
+.more-link:active {
+  color: rgb(29 78 216); /* Even darker on active */
+}
+
+.more-link:focus-visible {
+  outline: 2px solid rgb(59 130 246);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Removed expand-toggle-button styles - no longer needed for simplified truncation */
