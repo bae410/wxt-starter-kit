@@ -17,6 +17,10 @@ const PopupApp: FC = () => {
     const response = await messageClient.emit('stats.refresh');
     return response;
   });
+  const triggerCrawl = useAsyncTask(async () => {
+    const response = await messageClient.emit('crawler.trigger', { reason: 'manual' });
+    return response;
+  });
 
   const handleToggle = async () => {
     toggleEnabled();
@@ -65,6 +69,13 @@ const PopupApp: FC = () => {
               variant="outline"
             >
               <RefreshCw className="w-4 h-4 mr-2" /> Refresh Stats
+            </Button>
+            <Button
+              onClick={() => triggerCrawl.run()}
+              disabled={triggerCrawl.loading || !enabled}
+              className="flex-1"
+            >
+              <RefreshCw className="w-4 h-4 mr-2" /> Re-crawl Page
             </Button>
             <Button onClick={() => messageClient.emit('options.open')} variant="secondary">
               Open Settings

@@ -1,6 +1,7 @@
 import { browser } from 'wxt/browser';
 import { defineBackground } from 'wxt/sandbox';
 
+import { addSnapshotAndFlush, flushCrawlQueue } from '@lib/crawler/dispatcher';
 import { messageBus } from '@lib/messaging/bus';
 import { analyticsService } from '@lib/services/analytics';
 import { scheduleSyncJob } from '@lib/services/sync';
@@ -136,6 +137,32 @@ export default defineBackground({
       await analyticsService.track('activity_cleared');
     });
 
+    messageBus.register('crawler.snapshot', async ({ snapshot }) => {
+      const result = await addSnapshotAndFlush(snapshot);
+      return {
+        queued: result.status === 'queued',
+        reason: result.reason,
+      } as const;
+    });
+
+    messageBus.register('crawler.trigger', async ({ reason }) => {
+      const [activeTab] = await browser.tabs.query({ active: true, currentWindow: true });
+      if (!activeTab?.id) {
+        return { dispatched: false } as const;
+      }
+
+      try {
+        await browser.tabs.sendMessage(activeTab.id, {
+          topic: 'crawler.capture',
+          payload: { reason: reason ?? 'manual' },
+        });
+        return { dispatched: true } as const;
+      } catch (error) {
+        console.warn('[crawler] failed to trigger capture', error);
+        return { dispatched: false } as const;
+      }
+    });
+
     messageBus.register('devtools.evaluate', async ({ code }) => {
       const [activeTab] = await browser.tabs.query({ active: true, currentWindow: true });
       if (!activeTab?.id) {
@@ -164,6 +191,12 @@ export default defineBackground({
     messageBus.register('page.event', async (eventPayload) => {
       return { success: true, payload: eventPayload };
     });
+
+    browser.runtime.onStartup.addListener(() => {
+      void flushCrawlQueue();
+    });
+
+    void flushCrawlQueue();
 
     browser.contextMenus.create({
       id: 'wxt-starter-context',
