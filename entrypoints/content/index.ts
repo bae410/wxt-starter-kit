@@ -9,7 +9,7 @@ import { createShadowRootUI, type ContentUiController } from './ui';
 const WELCOME_TOAST_DELAY_MS = 2000;
 const WELCOME_TOAST_MESSAGE = 'WXT Starter is ready on this page.';
 
-let activeWelcomeTimer: ReturnType<typeof window.setTimeout> | null = null;
+let activeWelcomeTimer: ReturnType<typeof setTimeout> | null = null;
 let activeWelcomeController: ContentUiController | null = null;
 let beforeUnloadHandler: (() => void) | null = null;
 
@@ -50,7 +50,7 @@ function scheduleWelcomeToast(ui: ContentUiController): () => void {
       return;
     }
 
-    activeWelcomeTimer = window.setTimeout(() => {
+    activeWelcomeTimer = setTimeout(() => {
       activeWelcomeController?.flashMessage(WELCOME_TOAST_MESSAGE);
       clearActiveWelcomeTimer();
       activeWelcomeController = null;
