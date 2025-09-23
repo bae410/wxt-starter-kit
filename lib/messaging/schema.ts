@@ -1,4 +1,4 @@
-import type { StorageValue } from '@lib/storage/schema';
+import type { CrawlSnapshot, StorageValue } from '@lib/storage/schema';
 
 export interface MessagePayloads {
   'settings:get': {
@@ -33,6 +33,17 @@ export interface MessagePayloads {
   'page.event': {
     payload: Record<string, unknown>;
     response: { success: boolean; payload: Record<string, unknown> };
+  };
+  'crawler.capture': {
+    payload: { reason?: 'manual' | 'retry' };
+  };
+  'crawler.snapshot': {
+    request: { snapshot: CrawlSnapshot };
+    response: { queued: boolean; reason?: 'too_large' | 'queue_full' | 'storage_error' };
+  };
+  'crawler.trigger': {
+    request: { reason?: 'manual' | 'retry' };
+    response: { dispatched: boolean };
   };
 }
 
