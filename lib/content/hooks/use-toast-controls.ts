@@ -1,23 +1,35 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+export interface ToastMessageOptions {
+  autoHide?: boolean;
+  duration?: number;
+  reducedMotion?: boolean;
+}
+
+export interface ToastPayload {
+  text: string;
+  options?: ToastMessageOptions;
+}
+
 export interface ToastBridge {
-  enqueue: (message: string) => void;
-  register: (handler: (message: string) => void) => () => void;
+  enqueue: (message: string, options?: ToastMessageOptions) => void;
+  register: (handler: (payload: ToastPayload) => void) => () => void;
 }
 
 export function createToastBridge(): ToastBridge {
-  let pending: string | null = null;
-  let activeHandler: ((message: string) => void) | null = null;
+  let pending: ToastPayload | null = null;
+  let activeHandler: ((payload: ToastPayload) => void) | null = null;
 
   return {
-    enqueue: (message: string) => {
+    enqueue: (message: string, options?: ToastMessageOptions) => {
+      const payload: ToastPayload = { text: message, options };
       if (activeHandler) {
-        activeHandler(message);
+        activeHandler(payload);
       } else {
-        pending = message;
+        pending = payload;
       }
     },
-    register: (handler: (message: string) => void) => {
+    register: (handler: (payload: ToastPayload) => void) => {
       activeHandler = handler;
 
       if (pending) {
@@ -50,6 +62,7 @@ export function useToastControls({
   reducedMotion,
 }: UseToastControlsOptions): UseToastControlsResult {
   const [message, setMessage] = useState<string | null>(null);
+  const messageRef = useRef<string | null>(null);
   const [showCard, setShowCard] = useState(false);
   const cardShowTimeoutRef = useRef<number | null>(null);
   const dismissTimeoutRef = useRef<number | null>(null);
@@ -66,31 +79,42 @@ export function useToastControls({
   }, []);
 
   const closeToast = useCallback(() => {
-    if (!message) return;
+    if (!messageRef.current) return;
     clearTimers();
     setShowCard(false);
 
     dismissTimeoutRef.current = window.setTimeout(() => {
       setMessage(null);
+      messageRef.current = null;
       dismissTimeoutRef.current = null;
     }, 100);
-  }, [clearTimers, message]);
+  }, [clearTimers]);
 
   const handleIncomingMessage = useCallback(
-    (text: string) => {
+    (payload: ToastPayload) => {
+      const combinedOptions = payload.options;
+      const effectiveReducedMotion = combinedOptions?.reducedMotion ?? reducedMotion;
       clearTimers();
       setShowCard(false);
-      setMessage(text);
+      setMessage(payload.text);
+      messageRef.current = payload.text;
 
       cardShowTimeoutRef.current = window.setTimeout(
         () => {
           setShowCard(true);
           cardShowTimeoutRef.current = null;
         },
-        reducedMotion ? 50 : 300,
+        effectiveReducedMotion ? 50 : 300,
       );
+
+      if (combinedOptions?.autoHide) {
+        const duration = Math.max(0, combinedOptions.duration ?? 3000);
+        dismissTimeoutRef.current = window.setTimeout(() => {
+          closeToast();
+        }, duration);
+      }
     },
-    [clearTimers, reducedMotion],
+    [clearTimers, closeToast, reducedMotion],
   );
 
   const registerToastHandler = useCallback(

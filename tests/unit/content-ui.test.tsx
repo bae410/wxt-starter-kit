@@ -56,6 +56,70 @@ describe('createShadowRootUI', () => {
     expect(toastNode).toBeTruthy();
   });
 
+  it('keeps toast visible until dismissed when enqueued before toast root mounts', async () => {
+    const ctx = {} as ContentScriptContext;
+
+    let controller!: Awaited<ReturnType<typeof createShadowRootUI>>;
+    await act(async () => {
+      controller = await createShadowRootUI(ctx);
+    });
+
+    await act(async () => {
+      controller.flashMessage('Persistent toast');
+    });
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(400);
+    });
+
+    expect(screen.getByText('Persistent toast')).toBeTruthy();
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(5000);
+    });
+
+    expect(screen.getByText('Persistent toast')).toBeTruthy();
+
+    const dismissButton = screen.getByRole('button', { name: 'Dismiss toast' });
+
+    await act(async () => {
+      dismissButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      await vi.runAllTimersAsync();
+    });
+
+    expect(screen.queryByText('Persistent toast')).toBeNull();
+  });
+
+  it('applies auto hide duration when provided through flashMessage options', async () => {
+    const ctx = {} as ContentScriptContext;
+
+    let controller!: Awaited<ReturnType<typeof createShadowRootUI>>;
+    await act(async () => {
+      controller = await createShadowRootUI(ctx);
+    });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    await act(async () => {
+      controller.flashMessage('Timed toast', { autoHide: true, duration: 1500 });
+    });
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(400);
+    });
+
+    expect(screen.getByText('Timed toast')).toBeTruthy();
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1500);
+      await vi.runAllTimersAsync();
+    });
+
+    expect(screen.queryByText('Timed toast')).toBeNull();
+  });
+
   it('updates selection text via controller bridge', async () => {
     const ctx = {} as ContentScriptContext;
 
