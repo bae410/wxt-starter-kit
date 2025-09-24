@@ -5,15 +5,63 @@ import { storageManager } from '@lib/storage/manager';
 import type { CrawlSnapshot } from '@lib/storage/schema';
 
 const baseSnapshot: CrawlSnapshot = {
-  url: 'https://example.com/article',
-  title: 'Example Article',
-  capturedAt: Date.now(),
-  source: 'readability',
-  sanitizedHtml: '<article><p>Hello world</p></article>',
-  text: 'Hello world',
-  byline: null,
-  lang: 'en',
-  redactions: [],
+  schemaVersion: 3,
+  metadata: {
+    core: {
+      url: 'https://example.com/article',
+      capturedAt: Date.now(),
+      source: 'readability',
+      contentType: 'article',
+      language: 'en',
+      charset: null,
+    },
+    metaTags: {
+      description: null,
+      keywords: [],
+      author: null,
+      viewport: null,
+      robots: null,
+    },
+    openGraph: {
+      title: null,
+      description: null,
+      type: null,
+      url: null,
+      siteName: null,
+      locale: null,
+      images: [],
+    },
+    twitter: {
+      card: null,
+      site: null,
+      creator: null,
+      title: null,
+      description: null,
+      image: null,
+    },
+    structuredData: [],
+    media: {
+      images: [],
+      videos: [],
+      favicons: [],
+      logo: null,
+    },
+    timings: {
+      parseMs: null,
+      metadataMs: null,
+      totalMs: null,
+    },
+  },
+  content: {
+    title: 'Example Article',
+    text: 'Hello world',
+    sanitizedHtml: '<article><p>Hello world</p></article>',
+    byline: null,
+  },
+  processing: {
+    lang: 'en',
+    redactions: [],
+  },
 };
 
 let queueStore: unknown[];
@@ -49,14 +97,17 @@ describe('enqueueSnapshot', () => {
 
     const queue = await getQueue();
     expect(queue).toHaveLength(1);
-    expect(queue[0]?.snapshot.url).toBe(baseSnapshot.url);
+    expect(queue[0]?.snapshot.metadata.core.url).toBe(baseSnapshot.metadata.core.url);
   });
 
   it('rejects snapshots that exceed size threshold', async () => {
     const oversized: CrawlSnapshot = {
       ...baseSnapshot,
-      sanitizedHtml: 'x'.repeat(260_000),
-      text: 'x'.repeat(260_000),
+      content: {
+        ...baseSnapshot.content,
+        sanitizedHtml: 'x'.repeat(260_000),
+        text: 'x'.repeat(260_000),
+      },
     };
 
     const result = await enqueueSnapshot(oversized);

@@ -1,12 +1,14 @@
-import { FetchError, ofetch } from 'ofetch';
+import { FetchError } from 'ofetch';
 
+import { createHttpClient, HttpClientError } from '@lib/api/http-client';
 import type { CrawlQueueItem, CrawlSnapshot } from '@lib/storage/schema';
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'https://api.example.com/v1';
 const SUBMIT_PATH = '/crawl/submit';
 
-const api = ofetch.create({
+const api = createHttpClient({
   baseURL: BASE_URL,
+  name: 'crawler',
 });
 
 export interface SubmitResult {
@@ -19,32 +21,34 @@ interface SubmitPayload {
   url: string;
   title: string;
   capturedAt: number;
-  source: CrawlSnapshot['source'];
+  source: CrawlSnapshot['metadata']['core']['source'];
   content: {
     html: string;
     text: string;
   };
   metadata: {
-    byline?: string | null;
-    lang?: string | null;
-    redactions: CrawlSnapshot['redactions'];
+    byline: string | null;
+    lang: string | null;
+    redactions: CrawlSnapshot['processing']['redactions'];
   };
 }
 
 export async function submitSnapshot(item: CrawlQueueItem): Promise<SubmitResult> {
+  const { metadata, content, processing } = item.snapshot;
+
   const payload: SubmitPayload = {
-    url: item.snapshot.url,
-    title: item.snapshot.title,
-    capturedAt: item.snapshot.capturedAt,
-    source: item.snapshot.source,
+    url: metadata.core.url,
+    title: content.title,
+    capturedAt: metadata.core.capturedAt,
+    source: metadata.core.source,
     content: {
-      html: item.snapshot.sanitizedHtml,
-      text: item.snapshot.text,
+      html: content.sanitizedHtml,
+      text: content.text,
     },
     metadata: {
-      byline: item.snapshot.byline ?? null,
-      lang: item.snapshot.lang ?? null,
-      redactions: item.snapshot.redactions,
+      byline: content.byline,
+      lang: processing.lang,
+      redactions: processing.redactions,
     },
   };
 
@@ -62,7 +66,7 @@ export async function submitSnapshot(item: CrawlQueueItem): Promise<SubmitResult
 
     return { ok: response.ok, status: response.status };
   } catch (error: unknown) {
-    if (error instanceof FetchError) {
+    if (error instanceof HttpClientError || error instanceof FetchError) {
       const status = getStatusFromError(error);
       return {
         ok: false,
@@ -89,6 +93,10 @@ function hasResponse(error: unknown): error is ErrorWithResponse {
 }
 
 function getStatusFromError(error: unknown): number | undefined {
+  if (typeof (error as { status?: number })?.status === 'number') {
+    return (error as { status?: number }).status;
+  }
+
   if (hasResponse(error)) {
     const { status } = error.response ?? {};
     return typeof status === 'number' ? status : undefined;

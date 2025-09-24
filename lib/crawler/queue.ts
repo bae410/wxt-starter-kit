@@ -25,6 +25,7 @@ export async function enqueueSnapshot(snapshot: CrawlSnapshot): Promise<EnqueueR
       id: generateQueueId(),
       createdAt: Date.now(),
       attempts: 0,
+      schemaVersion: 3,
       snapshot,
     };
 

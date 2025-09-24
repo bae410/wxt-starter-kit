@@ -1,7 +1,9 @@
 import { Readability } from '@mozilla/readability';
 
 import { sanitizeHtmlContent, type SanitizedHtml } from '@lib/privacy/sanitizer';
-import type { CrawlSnapshot } from '@lib/storage/schema';
+import { createBaseMetadata, type CrawlSnapshot } from '@lib/storage/schema';
+
+import { extractMetadata } from './metadata-extractor';
 
 export interface PageSnapshot {
   url: string;
@@ -30,12 +32,14 @@ export function capturePageSnapshot({
   const readabilityResult = runReadability(document);
   const fallbackResult = readabilityResult ?? runFallback(document);
 
+  const documentHtml = document.documentElement.outerHTML;
+
   const sanitized = sanitizeHtmlContent(fallbackResult.html);
 
   return {
     url,
     title: selectValue([readabilityResult?.title, document.title, url]),
-    html: fallbackResult.html,
+    html: documentHtml,
     text: fallbackResult.text,
     byline: readabilityResult?.byline ?? null,
     lang: readabilityResult?.lang ?? document.documentElement.lang ?? null,
@@ -46,18 +50,49 @@ export function capturePageSnapshot({
   };
 }
 
-export function toCrawlSnapshot(snapshot: PageSnapshot): CrawlSnapshot {
-  return {
+export async function toCrawlSnapshot(
+  snapshot: PageSnapshot,
+  sourceDocument?: Document,
+): Promise<CrawlSnapshot> {
+  const baseMetadata = createBaseMetadata({
     url: snapshot.url,
-    title: snapshot.title,
     capturedAt: snapshot.capturedAt,
     source: snapshot.source,
-    sanitizedHtml: snapshot.sanitized.html,
-    text: snapshot.text,
-    byline: snapshot.byline ?? null,
-    lang: snapshot.lang ?? null,
-    redactions: snapshot.sanitized.redactions,
+    language: snapshot.lang ?? null,
+    contentType: snapshot.length ? 'article' : 'webpage',
+  });
+
+  const documentForMetadata = sourceDocument ?? documentFromHtml(snapshot.html);
+
+  const { metadata, durationMs } = await extractMetadata({
+    document: documentForMetadata,
+    html: documentForMetadata.documentElement.outerHTML,
+    url: snapshot.url,
+    baseMetadata,
+  });
+
+  metadata.metaTags.author = metadata.metaTags.author ?? snapshot.byline ?? null;
+  metadata.timings.metadataMs = durationMs ?? metadata.timings.metadataMs;
+
+  return {
+    schemaVersion: 3,
+    metadata,
+    content: {
+      title: snapshot.title,
+      text: snapshot.text,
+      sanitizedHtml: snapshot.sanitized.html,
+      byline: snapshot.byline ?? null,
+    },
+    processing: {
+      lang: snapshot.lang ?? null,
+      redactions: snapshot.sanitized.redactions,
+    },
   };
+}
+
+function documentFromHtml(html: string): Document {
+  const parser = new DOMParser();
+  return parser.parseFromString(html, 'text/html');
 }
 
 function runReadability(doc: Document) {

@@ -41,7 +41,7 @@ export async function flushCrawlQueue(): Promise<{
 
     const index = updatedQueue.findIndex((entry) => entry.id === item.id);
     if (index >= 0) {
-      const attempts = updatedQueue[index]!.attempts + 1;
+      const attempts = (updatedQueue[index]?.attempts ?? 0) + 1;
       if (!result.retryable || attempts >= MAX_ATTEMPTS) {
         updatedQueue.splice(index, 1);
       } else {
