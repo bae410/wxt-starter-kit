@@ -36,7 +36,6 @@ export async function extractMetadata({
   const metascraperResults = await runMetascraper(metascraperRunner, { html, url });
   const { metadata, runnerDuration } = mergeMetadata({
     document,
-    html,
     baseMetadata,
     metascraperResults,
   });
