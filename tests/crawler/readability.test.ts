@@ -9,7 +9,7 @@ function createDocument(html: string): Document {
 }
 
 describe('capturePageSnapshot', () => {
-  it('uses readability output when available and masks PII', () => {
+  it('creates a snapshot with metadata extracted from readability', () => {
     const document = createDocument(`
       <!doctype html>
       <html lang="en">
@@ -32,11 +32,6 @@ describe('capturePageSnapshot', () => {
     expect(snapshot.sanitized.html).not.toContain('writer@example.com');
     expect(snapshot.sanitized.html).toContain('***@***.***');
     expect(snapshot.sanitized.redactions).toContainEqual({ type: 'email', count: 1 });
-
-    const payload = toCrawlSnapshot(snapshot);
-    expect(payload.title).toBe('Example Article');
-    expect(payload.sanitizedHtml).toContain('***@***.***');
-    expect(payload.redactions).toContainEqual({ type: 'email', count: 1 });
   });
 
   it('falls back to basic parser when readability fails', () => {
@@ -85,5 +80,36 @@ describe('capturePageSnapshot', () => {
     capturePageSnapshot({ document, url: 'https://example.com/clone-check' });
 
     expect(document.body?.innerHTML).toBe(originalMarkup);
+  });
+});
+
+describe('toCrawlSnapshot', () => {
+  it('uses extractor to enrich metadata', async () => {
+    const document = createDocument(`
+      <!doctype html>
+      <html lang="en">
+        <head>
+          <title>Example Article</title>
+          <meta name="author" content="Reporter" />
+          <meta name="keywords" content="news, example" />
+          <link rel="icon" href="https://example.com/favicon.ico" />
+        </head>
+        <body>
+          <article>
+            <h1>Example Article</h1>
+            <p>Contact us at writer@example.com for more details.</p>
+          </article>
+        </body>
+      </html>
+    `);
+
+    const snapshot = capturePageSnapshot({ document, url: 'https://example.com/article' });
+    const payload = await toCrawlSnapshot(snapshot);
+
+    expect(payload.metadata.core.url).toBe('https://example.com/article');
+    expect(payload.metadata.metaTags.author).toBe('Reporter');
+    expect(payload.metadata.metaTags.keywords).toEqual(['news', 'example']);
+    expect(payload.metadata.media.favicons[0]?.url).toBe('https://example.com/favicon.ico');
+    expect(payload.metadata.core.language).toBe('en');
   });
 });

@@ -11,6 +11,7 @@ class StorageManager {
   async migrate(previousVersion: string): Promise<void> {
     console.info('[storage] running migrations from version', previousVersion);
     await this.ensureDefaults();
+    await this.migrateCrawlerQueue();
   }
 
   async ensureDefaults(): Promise<void> {
@@ -57,6 +58,29 @@ class StorageManager {
   async remove(key: StorageKey): Promise<void> {
     await browser.storage.local.remove(key);
   }
+
+  private async migrateCrawlerQueue(): Promise<void> {
+    const result = await browser.storage.local.get('crawler.queue');
+    if (!('crawler.queue' in result)) return;
+
+    const rawItems = result['crawler.queue'];
+    if (!Array.isArray(rawItems)) return;
+
+    const hasLegacyItems = rawItems.some((item) => isLegacyQueueItem(item));
+    if (!hasLegacyItems) return;
+
+    const upgraded = StorageSchema['crawler.queue'].parse(rawItems);
+    await browser.storage.local.set({ 'crawler.queue': upgraded });
+    console.info('[storage] migrated crawler queue to v2 schema');
+  }
 }
 
 export const storageManager = new StorageManager();
+
+function isLegacyQueueItem(value: unknown): boolean {
+  if (typeof value !== 'object' || value === null) return false;
+  if ('schemaVersion' in value) return false;
+  const snapshot = (value as { snapshot?: unknown }).snapshot;
+  if (typeof snapshot !== 'object' || snapshot === null) return false;
+  return !('metadata' in snapshot) || !('content' in snapshot) || !('processing' in snapshot);
+}

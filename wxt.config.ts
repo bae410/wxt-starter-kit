@@ -41,7 +41,7 @@ export default defineConfig({
     },
   }),
   runner: {
-    startUrls: ['https://example.com'],
+    startUrls: ['https://naver.com'],
     chromiumArgs: ['--auto-open-devtools-for-tabs'],
   },
   zip: {

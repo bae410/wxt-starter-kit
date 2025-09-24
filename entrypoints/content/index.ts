@@ -183,7 +183,7 @@ async function performCrawl(reason: CrawlReason): Promise<void> {
   }
 
   const snapshot = capturePageSnapshot({ document, url: window.location.href });
-  const payload = toCrawlSnapshot(snapshot);
+  const payload = await toCrawlSnapshot(snapshot);
 
   try {
     const response = await messageBus.emit('crawler.snapshot', { snapshot: payload });
